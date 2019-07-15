@@ -5,6 +5,8 @@
     <title>Cat and Mouse</title>
 </head>
 <body onkeydown="game.eat(event)">
+<img src="Image/down1.png" alt="down1" id="imageInput" style="display: none">
+<img src="Image/up1.png" alt="down1" id="imageOutput" style="display: none">
 <canvas id="catCanvas" width="1080" height="768" style="border: 1px solid #2196F3"></canvas>
 <script>
 
@@ -16,9 +18,6 @@
     const DEFAULT_CAT_X_POSITION = 100;
     const DEFAULT_CAT_Y_POSITION = 100;
 
-    const IMAGE_WIDTH = 59;
-    const IMAGE_HEIGHT = 86;
-
     const DEFAULT_MOUSE_X_POSITION = 400;
     const DEFAULT_MOUSE_Y_POSITION = 300;
 
@@ -28,13 +27,11 @@
     const GAMEBOARD_WIDTH = 1080;
     const GAMEBOARD_HEIGHT = 768;
 
-    function Mouse(weight) {
-        this.xPosition = DEFAULT_MOUSE_X_POSITION;
-        this.yPosition = DEFAULT_MOUSE_Y_POSITION;
+    function Mouse(xMouse, yMouse, speed) {
+        this.xPosition = xMouse;
+        this.yPosition = yMouse;
         this.orientation = DEFAULT_CAT_ORIENTATION;
-        this.speed = DEFAULT_CAT_SPEED/2;
-        this.weight = weight;
-        this.step = 1;
+        this.speed = speed;
 
         this.move = function () {
             switch (this.orientation) {
@@ -64,20 +61,17 @@
         }
     }
 
-    function Cat(weight) {
+    function Cat() {
         this.xPosition = DEFAULT_CAT_X_POSITION;
         this.yPosition = DEFAULT_CAT_Y_POSITION;
         this.orientation = DEFAULT_CAT_ORIENTATION;
         this.speed = DEFAULT_CAT_SPEED;
-        this.step = 1;
-
-        this.weight = weight;
 
         this.show = function (ctx) {
-            let image = new Image();
             let xPosition = this.xPosition;
             let yPosition = this.yPosition;
-            image.src = "Image/up1.png";
+            let image = new Image();
+            image.src = "Image/down1.png";
             image.onload = function () {
                 ctx.drawImage(image, xPosition, yPosition);
             }
@@ -102,46 +96,43 @@
     }
 
     function GameBoard() {
-        this.cat = new Cat(2);
-        this.mouse = new Mouse(1);
+        this.cat = new Cat();
+        this.mouse = new Mouse(400, 300, 10);
+        this.mouse2 = new Mouse(200, 300, 30);
         this.ctx = undefined;
 
         this.start = function () {
             this.ctx = document.getElementById("catCanvas").getContext("2d");
             this.cat.show(this.ctx);
             this.mouse.show(this.ctx);
+            this.mouse2.show(this.ctx);
         };
 
         this.render = function () {
             this.ctx.clearRect(0, 0, GAMEBOARD_WIDTH, GAMEBOARD_HEIGHT);
             this.cat.show(this.ctx);
             this.mouse.show(this.ctx);
+            this.mouse2.show(this.ctx);
         };
 
         this.gameReset = function () {
             this.cat.xPosition = DEFAULT_CAT_X_POSITION;
             this.cat.yPosition = DEFAULT_CAT_Y_POSITION;
-            this.mouse.xPosition = DEFAULT_MOUSE_X_POSITION;
-            this.mouse.yPosition = DEFAULT_MOUSE_Y_POSITION;
-            this.cat.weight = 2;
-            this.mouse.weight = 1;
+            this.mouse.xPosition = 400;
+            this.mouse.yPosition = 300;
+            this.mouse.xPosition = 200;
+            this.mouse.yPosition = 300;
         };
 
-
         this.checkEat = function () {
-            let minusXMouse = this.mouse.xPosition - 40;
-            let xMousePosition = this.mouse.xPosition + 40;
-            let yMousePosition = this.mouse.yPosition + 40;
-            let minusYMouse = this.mouse.yPosition - 40;
+            let doubleStep = DEFAULT_CAT_SPEED*2;
+            let minusXMouse = this.mouse.xPosition - doubleStep;
+            let xMousePosition = this.mouse.xPosition + doubleStep;
+            let yMousePosition = this.mouse.yPosition + doubleStep;
+            let minusYMouse = this.mouse.yPosition - doubleStep;
             if (this.cat.xPosition >= minusXMouse && this.cat.xPosition <= xMousePosition && this.cat.yPosition >= minusYMouse && this.cat.yPosition <= yMousePosition) {
-                this.cat.weight += 1;
-                this.mouse.weight -= 1;
-                console.log(this.cat.weight);
-                console.log(this.mouse.weight);
-                if (this.mouse.weight === 0) {
-                    alert("die");
+                    alert("The mouse has been caught");
                     this.gameReset();
-                }
             }
         };
 
@@ -165,9 +156,11 @@
                 if (this.cat.orientation !== orientation) {
                     this.cat.orientation = orientation;
                     this.mouse.orientation = orientation;
+                    this.mouse2.orientation = orientation;
                 } else {
                     this.cat.move();
                     this.mouse.move();
+                    this.mouse2.move();
                 }
                 this.checkEat();
                 this.render();
